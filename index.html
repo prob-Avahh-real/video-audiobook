@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#1a2332" />
+  <title>影声</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #e8eef6;
+      --ink-dim: #9aa8bc;
+      --night: #121820;
+      --slate: #1a2332;
+      --slate-lift: #243044;
+      --amber: #d4a24c;
+      --amber-deep: #b8842f;
+      --fog: rgba(232, 238, 246, 0.08);
+      --line: rgba(232, 238, 246, 0.12);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --font-brand: "Noto Serif SC", "Songti SC", serif;
+      --font-ui: "DM Sans", "PingFang SC", "Noto Sans SC", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      font-family: var(--font-ui);
+      color: var(--ink);
+      background: var(--night);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background:
+        radial-gradient(90% 70% at 0% 0%, rgba(212, 162, 76, 0.14), transparent 55%),
+        radial-gradient(70% 50% at 100% 10%, rgba(90, 130, 180, 0.18), transparent 50%),
+        linear-gradient(165deg, #1c2636 0%, var(--night) 45%, #0e131a 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.4;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 520px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      padding: calc(18px + var(--safe-top)) 20px calc(28px + var(--safe-bottom));
+    }
+
+    .hero {
+      padding: 8px 0 22px;
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.75s ease, transform 0.75s ease;
+    }
+    body.ready .hero {
+      opacity: 1;
+      transform: none;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      font-family: var(--font-brand);
+      font-size: clamp(2.8rem, 13vw, 3.8rem);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      line-height: 1;
+      color: var(--ink);
+      animation: brandIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes brandIn {
+      from { opacity: 0; transform: translateY(16px); filter: blur(5px); }
+      to { opacity: 1; transform: none; filter: none; }
+    }
+
+    .tagline {
+      margin-top: 10px;
+      color: var(--ink-dim);
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      max-width: 22em;
+      animation: fadeUp 0.8s 0.15s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .wear-btn {
+      border: 1px solid var(--line);
+      background: var(--fog);
+      color: var(--ink-dim);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+    .wear-btn.on {
+      color: var(--amber);
+      border-color: rgba(212, 162, 76, 0.45);
+    }
+
+    .panel {
+      margin-top: 8px;
+      animation: fadeUp 0.85s 0.2s ease both;
+    }
+
+    .modes {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink-dim);
+      padding: 12px 10px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    }
+    .mode-btn.active {
+      background: rgba(212, 162, 76, 0.14);
+      border-color: rgba(212, 162, 76, 0.5);
+      color: var(--ink);
+    }
+
+    .pick-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 13px 18px;
+      font-family: var(--font-ui);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.2s ease;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--amber), var(--amber-deep));
+      color: #1a1408;
+    }
+    .btn-ghost {
+      background: var(--slate-lift);
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    .file-name {
+      flex: 1;
+      font-size: 0.85rem;
+      color: var(--ink-dim);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #file-input { display: none; }
+
+    .hidden { display: none !important; }
+
+    #transcript-panel { margin-bottom: 12px; }
+    #transcript {
+      width: 100%;
+      min-height: 120px;
+      resize: vertical;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.25);
+      color: var(--ink);
+      padding: 12px 14px;
+      font-family: var(--font-ui);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+    #transcript:focus {
+      outline: none;
+      border-color: rgba(212, 162, 76, 0.55);
+    }
+
+    .convert-row { margin-top: 4px; }
+    .convert-row .btn { width: 100%; }
+
+    #progress-wrap {
+      margin-top: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    #progress-wrap.visible { opacity: 1; }
+    .progress-track {
+      height: 4px;
+      border-radius: 999px;
+      background: var(--fog);
+      overflow: hidden;
+    }
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--amber-deep), var(--amber));
+      transition: width 0.2s ease;
+    }
+    #progress-label {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: var(--ink-dim);
+    }
+
+    .section-label {
+      margin: 28px 0 12px;
+      font-size: 0.75rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+
+    .empty {
+      color: var(--ink-dim);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      padding: 8px 0 20px;
+    }
+
+    .book-row {
+      display: flex;
+      align-items: stretch;
+      gap: 6px;
+      margin-bottom: 8px;
+      animation: fadeUp 0.5s ease both;
+    }
+    .book-main {
+      flex: 1;
+      text-align: left;
+      border: 1px solid var(--line);
+      background: rgba(36, 48, 68, 0.55);
+      color: var(--ink);
+      border-radius: 14px;
+      padding: 14px 16px;
+      cursor: pointer;
+    }
+    .book-title {
+      display: block;
+      font-family: var(--font-brand);
+      font-size: 1.15rem;
+      margin-bottom: 4px;
+    }
+    .book-sub {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--ink-dim);
+    }
+    .icon-btn {
+      width: 44px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink-dim);
+      border-radius: 14px;
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+    .icon-btn.danger:hover { color: #e07070; }
+
+    /* Player sheet */
+    #player {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      max-width: 520px;
+      margin: 0 auto;
+      background:
+        linear-gradient(180deg, rgba(36, 48, 68, 0.97), rgba(18, 24, 32, 0.98));
+      border-top: 1px solid var(--line);
+      border-radius: 22px 22px 0 0;
+      padding: 16px 20px calc(20px + var(--safe-bottom));
+      transform: translateY(110%);
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      max-height: 78dvh;
+      overflow: auto;
+      backdrop-filter: blur(16px);
+    }
+    #player.open { transform: translateY(0); }
+
+    .player-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    #player-title {
+      font-family: var(--font-brand);
+      font-size: 1.45rem;
+      line-height: 1.2;
+    }
+    #player-meta {
+      margin-top: 4px;
+      font-size: 0.8rem;
+      color: var(--ink-dim);
+    }
+    #close-player {
+      border: none;
+      background: var(--fog);
+      color: var(--ink-dim);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    .transport {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 8px 0 14px;
+    }
+    .transport .btn { min-width: 72px; }
+    #play-btn { min-width: 96px; }
+
+    .seek-row {
+      display: grid;
+      grid-template-columns: 40px 1fr 40px;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--ink-dim);
+      margin-bottom: 12px;
+    }
+    #seek {
+      width: 100%;
+      accent-color: var(--amber);
+    }
+
+    .player-tools {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    #rate-select {
+      border: 1px solid var(--line);
+      background: var(--slate);
+      color: var(--ink);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.85rem;
+    }
+
+    #chapter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .chapter-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+      border: 1px solid transparent;
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--ink);
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 0.88rem;
+    }
+    .chapter-item.active {
+      border-color: rgba(212, 162, 76, 0.45);
+      background: rgba(212, 162, 76, 0.1);
+    }
+    .ch-time {
+      color: var(--ink-dim);
+      font-size: 0.75rem;
+      flex-shrink: 0;
+      max-width: 45%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(28px + var(--safe-bottom));
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(20, 26, 36, 0.92);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 40;
+      white-space: nowrap;
+      max-width: 90vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    body.player-open #toast {
+      bottom: calc(42dvh + var(--safe-bottom));
+    }
+
+    /* Watch / narrow FOV */
+    @media (max-width: 280px), (max-height: 300px) {
+      .app { padding: 6px 8px 10px; }
+      .brand { font-size: 1.6rem; letter-spacing: 0.08em; }
+      .tagline { font-size: 0.65rem; margin-top: 4px; }
+      .modes { flex-direction: column; gap: 4px; }
+      .mode-btn { padding: 8px; font-size: 0.75rem; }
+      .btn { padding: 8px 10px; font-size: 0.75rem; }
+      .section-label { margin: 12px 0 6px; }
+      .book-title { font-size: 0.95rem; }
+      .book-sub { font-size: 0.65rem; }
+      #player { max-height: 90dvh; padding: 10px; border-radius: 12px 12px 0 0; }
+      #player-title { font-size: 1rem; }
+      .chapter-item { padding: 6px 8px; font-size: 0.72rem; }
+      .wear-btn { display: none; }
+      .pick-row { flex-direction: column; align-items: stretch; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="hero">
+      <div class="topbar">
+        <h1 class="brand">影声</h1>
+        <button type="button" class="wear-btn" id="wear-btn">穿戴控制</button>
+      </div>
+      <p class="tagline">把视频变成可随身听的有声书</p>
+    </header>
+
+    <section class="panel" aria-label="转化">
+      <div class="modes" role="tablist">
+        <button type="button" class="mode-btn active" id="mode-extract" role="tab">原声提炼</button>
+        <button type="button" class="mode-btn" id="mode-tts" role="tab">旁白重铸</button>
+      </div>
+
+      <div class="pick-row">
+        <input type="file" id="file-input" accept="video/*,.mp4,.mov,.webm,.mkv" />
+        <button type="button" class="btn btn-ghost" id="pick-btn">选择视频</button>
+        <span class="file-name" id="file-name">未选择视频</span>
+      </div>
+
+      <div id="transcript-panel" class="hidden">
+        <textarea id="transcript" placeholder="粘贴视频文稿或字幕。将按段落自动分章，用系统语音朗读成有声书。"></textarea>
+      </div>
+
+      <div class="convert-row">
+        <button type="button" class="btn btn-primary" id="convert-btn">生成有声书</button>
+      </div>
+
+      <div id="progress-wrap">
+        <div class="progress-track"><div id="progress-bar"></div></div>
+        <div id="progress-label"></div>
+      </div>
+    </section>
+
+    <h2 class="section-label">书库</h2>
+    <div id="library"></div>
+  </div>
+
+  <div id="player" aria-hidden="true">
+    <div class="player-head">
+      <div>
+        <div id="player-title">有声书</div>
+        <div id="player-meta"></div>
+      </div>
+      <button type="button" id="close-player" aria-label="关闭">×</button>
+    </div>
+
+    <div class="transport">
+      <button type="button" class="btn btn-ghost" id="prev-btn">上一章</button>
+      <button type="button" class="btn btn-primary" id="play-btn">播放</button>
+      <button type="button" class="btn btn-ghost" id="next-btn">下一章</button>
+    </div>
+
+    <div class="seek-row">
+      <span id="time-cur">0:00</span>
+      <input type="range" id="seek" min="0" max="100" value="0" />
+      <span id="time-dur">0:00</span>
+    </div>
+
+    <div class="player-tools">
+      <select id="rate-select" aria-label="语速">
+        <option value="0.75">0.75×</option>
+        <option value="1" selected>1×</option>
+        <option value="1.25">1.25×</option>
+        <option value="1.5">1.5×</option>
+        <option value="2">2×</option>
+      </select>
+      <button type="button" class="btn btn-ghost" id="download-btn">导出音频</button>
+    </div>
+
+    <div id="chapter-list"></div>
+  </div>
+
+  <div id="toast" role="status"></div>
+  <script src="js/app.js"></script>
+</body>
+</html>

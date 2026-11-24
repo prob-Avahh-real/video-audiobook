@@ -1,0 +1,20 @@
+{
+  "appId": "com.skat.videoaudiobook",
+  "appName": "影声",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "automatic"
+  },
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#1a2332"
+    }
+  }
+}
